@@ -1,9 +1,13 @@
 import { HttpError } from '../../utils/HttpError.js';
+import { User } from '../user/Module.js';
 import { Shift } from './Module.js';
 
 export async function getAllShifts(req, res) {
-  const filter = req.auth.role === 'admin' ? {} : { userId: req.auth.userId };
-  const shifts = await Shift.find(filter).populate('userId', 'firstname lastname email');
+  if (req.auth.role !== 'admin') {
+    throw new HttpError(403, 'Only administrators can list all shifts.');
+  }
+
+  const shifts = await Shift.find().populate('userId', 'firstname lastname email');
   res.json({ shifts });
 }
 
@@ -19,12 +23,21 @@ export async function getShiftById(req, res) {
 }
 
 export async function addShift(req, res) {
-  const shift = await Shift.create({ ...req.body.shift, userId: req.auth.userId });
+  const requestedUserId = req.body._id || req.auth.userId;
+  if (req.auth.role !== 'admin' && requestedUserId !== req.auth.userId) {
+    throw new HttpError(403, 'You can only create shifts for your own account.');
+  }
+  if (!(await User.exists({ _id: requestedUserId }))) {
+    throw new HttpError(404, 'User for this shift was not found.');
+  }
+
+  const shift = await Shift.create({ ...req.body.shift, userId: requestedUserId });
   res.status(201).json({ shift });
 }
 
 export async function updateShiftById(req, res) {
-  const shift = await Shift.findById(req.params.id);
+  const id = req.params.id || req.body._id;
+  const shift = await Shift.findById(id);
   if (!shift) {
     throw new HttpError(404, 'Shift not found.');
   }
@@ -38,7 +51,7 @@ export async function updateShiftById(req, res) {
 }
 
 export async function deleteShift(req, res) {
-  const shift = await Shift.findByIdAndDelete(req.params.id);
+  const shift = await Shift.findByIdAndDelete(req.params.id || req.body._id);
   if (!shift) {
     throw new HttpError(404, 'Shift not found.');
   }

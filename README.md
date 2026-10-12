@@ -42,18 +42,23 @@ All routes are prefixed by `/api`. Protected routes require a bearer token.
 | GET | `/users` | Admin | List users |
 | PATCH | `/users/:id` | Own account or admin | Update email, first name or last name |
 | DELETE | `/users/:id` | Admin | Delete a user |
-| GET | `/shifts` | Authenticated | Admins see all shifts; users see their own |
+| GET | `/shifts` | Admin | List all shifts |
 | GET | `/shifts/:id` | Owner or admin | Get a shift |
-| POST | `/shifts` | Authenticated | Create a shift for the current user |
-| PATCH | `/shifts/:id` | Owner or admin | Update a shift |
-| DELETE | `/shifts/:id` | Admin | Delete a shift |
+| GET | `/shifts` with query or JSON body `_id` | Owner or admin | Get one shift (also supports the assignment's `_id` input format) |
+| POST | `/shifts` | Authenticated | Create a shift; optional `_id` identifies the user, and regular users can only use their own ID |
+| PATCH | `/shifts` with `{ "_id": "...", "shift": {} }` | Owner or admin | Update a shift using the assignment's input format |
+| PATCH | `/shifts/:id` | Owner or admin | REST-style alias to update a shift |
+| DELETE | `/shifts` with `{ "_id": "...", "user": {} }` | Admin | Delete a shift using the assignment's input format; authorization comes from the JWT |
+| DELETE | `/shifts/:id` | Admin | REST-style alias to delete a shift |
 | GET | `/comment` | Admin | List all comments |
 | GET | `/comment/:id` | Owner or admin | Get a comment |
 | POST | `/comment` | Authenticated | Create a comment for the current user |
-| PATCH | `/comment/:id` | Owner or admin | Update a comment |
-| DELETE | `/comment/:id` | Admin | Delete a comment |
+| PATCH | `/comment` with `{ "_id": "...", "comment": {} }` | Owner or admin | Update using the assignment's input format |
+| PATCH | `/comment/:id` | Owner or admin | REST-style alias to update a comment |
+| DELETE | `/comment` with `{ "_id": "...", "user": {} }` | Admin | Delete using the assignment's input format; authorization comes from the JWT |
+| DELETE | `/comment/:id` | Admin | REST-style alias to delete a comment |
 | GET | `/comment/user/:userId` | Authenticated | List comments created by a user |
-| GET | `/permission` | Admin | List permission roles |
+| GET | `/permission` | Authenticated | List permission roles |
 
 Permission records are provisioned by the API and are not writable through a public endpoint.
 
@@ -103,4 +108,10 @@ Run the test suite with `npm test`.
 
 ## Postman / Insomnia
 
-Import the route table above into Postman or Insomnia. Register or log in first, save the returned token as a Bearer token, and use it for protected requests. Test both regular-user and administrator access to verify the role restrictions.
+Import [`postman/Project-3-API.postman_collection.json`](./postman/Project-3-API.postman_collection.json) into Postman. Run “Register regular user” first; the collection saves its JWT and ID for subsequent requests. Set the `adminToken` collection variable to a JWT for an administrator before running administrator-only requests. The collection includes requests using the `_id` request bodies shown in the school specification.
+
+The assignment says `GET /api/shifts` is only for admins; accordingly, a regular user's attempt to list shifts returns `403`. A regular user can still retrieve or update their own individual shift.
+
+## Deployment
+
+The API is ready to run locally or deploy to a Node.js host. Configure `MONGODB_URI`, `JWT_SECRET`, `CORS_ORIGIN` and `PORT` in the host's environment settings, then use `npm start`. Do not commit `.env`; it contains private configuration.

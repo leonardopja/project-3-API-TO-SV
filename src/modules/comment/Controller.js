@@ -28,7 +28,7 @@ export async function createComment(req, res) {
 }
 
 export async function updateCommentById(req, res) {
-  const comment = await Comment.findById(req.params.id);
+  const comment = await Comment.findById(req.params.id || req.body._id);
   if (!comment) {
     throw new HttpError(404, 'Comment not found.');
   }
@@ -42,7 +42,7 @@ export async function updateCommentById(req, res) {
 }
 
 export async function deleteComment(req, res) {
-  const comment = await Comment.findByIdAndDelete(req.params.id);
+  const comment = await Comment.findByIdAndDelete(req.params.id || req.body._id);
   if (!comment) {
     throw new HttpError(404, 'Comment not found.');
   }

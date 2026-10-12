@@ -5,8 +5,7 @@ import helmet from 'helmet';
 import commentRoutes from './modules/comment/Route.js';
 import permissionRoutes from './modules/permission/Route.js';
 import shiftRoutes from './modules/shift/Route.js';
-import authRoutes from './modules/user/AuthRoute.js';
-import userRoutes from './modules/user/Route.js';
+import userRoutes, { authRouter } from './modules/user/Route.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import { env } from './config/env.js';
 
@@ -24,7 +23,7 @@ app.use(rateLimit({
 }));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok' }));
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authRouter);
 app.use('/api/users', userRoutes);
 app.use('/api/shifts', shiftRoutes);
 app.use('/api/comment', commentRoutes);
